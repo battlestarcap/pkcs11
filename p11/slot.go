@@ -1,6 +1,6 @@
 package p11
 
-import "github.com/miekg/pkcs11"
+import "github.com/battlestarcap/pkcs11"
 
 // Slot represents a slot that may hold a token.
 type Slot struct {
@@ -35,8 +35,8 @@ func (s Slot) openSession(flags uint) (Session, error) {
 		return nil, err
 	}
 	return &sessionImpl{
-		ctx:    s.ctx,
-		handle: handle,
+		Ctx:    s.ctx,
+		Handle: handle,
 	}, nil
 }
 

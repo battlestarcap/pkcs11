@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/miekg/pkcs11"
+	"github.com/battlestarcap/pkcs11"
 )
 
 // Session represents a PKCS#11 session.
@@ -50,8 +50,8 @@ type Session interface {
 
 type sessionImpl struct {
 	sync.Mutex
-	ctx    *pkcs11.Ctx
-	handle pkcs11.SessionHandle
+	Ctx    *pkcs11.Ctx
+	Handle pkcs11.SessionHandle
 }
 
 func (s *sessionImpl) FindObject(template []*pkcs11.Attribute) (Object, error) {
@@ -68,29 +68,29 @@ func (s *sessionImpl) FindObject(template []*pkcs11.Attribute) (Object, error) {
 func (s *sessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error) {
 	s.Lock()
 	defer s.Unlock()
-	if err := s.ctx.FindObjectsInit(s.handle, template); err != nil {
+	if err := s.Ctx.FindObjectsInit(s.Handle, template); err != nil {
 		return nil, err
 	}
 
 	var results []Object
 	for {
-		objectHandles, _, err := s.ctx.FindObjects(s.handle, 100)
+		ObjectHandles, _, err := s.Ctx.FindObjects(s.Handle, 100)
 		if err != nil {
-			_ = s.ctx.FindObjectsFinal(s.handle)
+			_ = s.Ctx.FindObjectsFinal(s.Handle)
 			return nil, err
-		} else if len(objectHandles) == 0 {
+		} else if len(ObjectHandles) == 0 {
 			break
 		}
 		i := len(results)
-		results = append(results, make([]Object, len(objectHandles))...)
-		for j, objectHandle := range objectHandles {
+		results = append(results, make([]Object, len(ObjectHandles))...)
+		for j, ObjectHandle := range ObjectHandles {
 			results[i+j] = Object{
 				session:      s,
-				objectHandle: objectHandle,
+				ObjectHandle: ObjectHandle,
 			}
 		}
 	}
-	if err := s.ctx.FindObjectsFinal(s.handle); err != nil {
+	if err := s.Ctx.FindObjectsFinal(s.Handle); err != nil {
 		return nil, err
 	} else if len(results) == 0 {
 		return nil, errors.New("no objects found")
@@ -101,7 +101,7 @@ func (s *sessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error
 func (s *sessionImpl) Close() error {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.CloseSession(s.handle)
+	return s.Ctx.CloseSession(s.Handle)
 }
 
 func (s *sessionImpl) Login(pin string) error {
@@ -115,44 +115,44 @@ func (s *sessionImpl) LoginSecurityOfficer(pin string) error {
 func (s *sessionImpl) login(userType uint, pin string) error {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.Login(s.handle, userType, pin)
+	return s.Ctx.Login(s.Handle, userType, pin)
 }
 
 func (s *sessionImpl) Logout() error {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.Logout(s.handle)
+	return s.Ctx.Logout(s.Handle)
 }
 
 func (s *sessionImpl) GenerateRandom(length int) ([]byte, error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.GenerateRandom(s.handle, length)
+	return s.Ctx.GenerateRandom(s.Handle, length)
 }
 
 func (s *sessionImpl) CreateObject(template []*pkcs11.Attribute) (Object, error) {
 	s.Lock()
 	defer s.Unlock()
-	oh, err := s.ctx.CreateObject(s.handle, template)
+	oh, err := s.Ctx.CreateObject(s.Handle, template)
 	if err != nil {
 		return Object{}, err
 	}
 	return Object{
 		session:      s,
-		objectHandle: oh,
+		ObjectHandle: oh,
 	}, nil
 }
 
 func (s *sessionImpl) InitPIN(pin string) error {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.InitPIN(s.handle, pin)
+	return s.Ctx.InitPIN(s.Handle, pin)
 }
 
 func (s *sessionImpl) SetPIN(old, new string) error {
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.SetPIN(s.handle, old, new)
+	return s.Ctx.SetPIN(s.Handle, old, new)
 }
 
 // KeyPair contains two Objects: one for a public key and one for a private key.
@@ -173,7 +173,7 @@ type GenerateKeyPairRequest struct {
 func (s *sessionImpl) GenerateKeyPair(request GenerateKeyPairRequest) (*KeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
-	pubHandle, privHandle, err := s.ctx.GenerateKeyPair(s.handle,
+	pubHandle, privHandle, err := s.Ctx.GenerateKeyPair(s.Handle,
 		[]*pkcs11.Mechanism{&request.Mechanism},
 		request.PublicKeyAttributes,
 		request.PrivateKeyAttributes)
@@ -183,11 +183,11 @@ func (s *sessionImpl) GenerateKeyPair(request GenerateKeyPairRequest) (*KeyPair,
 	return &KeyPair{
 		Public: PublicKey(Object{
 			session:      s,
-			objectHandle: pubHandle,
+			ObjectHandle: pubHandle,
 		}),
 		Private: PrivateKey(Object{
 			session:      s,
-			objectHandle: privHandle,
+			ObjectHandle: privHandle,
 		}),
 	}, nil
 }

@@ -85,3 +85,19 @@ func (p *GCMParams) Free() {
 	p.params = nil
 	p.arena = nil
 }
+
+// GetDeriveParamBytes -
+func GetDeriveParamBytes(public []byte) ([]byte, arena) {
+
+	var arena arena
+
+	publicBuffer, _ := arena.Allocate(public)
+
+	params := C.CK_ECDH1_DERIVE_PARAMS{
+		kdf:             C.CK_ULONG(C.CKD_NULL),
+		ulSharedDataLen: 0,
+		pSharedData:     nil,
+		ulPublicDataLen: C.CK_ULONG(len(public)),
+		pPublicData:     C.CK_BYTE_PTR(publicBuffer)}
+	return C.GoBytes(unsafe.Pointer(&params), C.int(unsafe.Sizeof(params))), arena
+}

@@ -1,6 +1,6 @@
 package p11
 
-import "github.com/miekg/pkcs11"
+import "github.com/battlestarcap/pkcs11"
 
 // PublicKey is an Object representing a public key. Since any object can be cast to a
 // PublicKey, it is the user's responsibility to ensure that the object is
@@ -19,11 +19,11 @@ func (priv PrivateKey) Decrypt(mechanism pkcs11.Mechanism, ciphertext []byte) ([
 	s := priv.session
 	s.Lock()
 	defer s.Unlock()
-	err := s.ctx.DecryptInit(s.handle, []*pkcs11.Mechanism{&mechanism}, priv.objectHandle)
+	err := s.Ctx.DecryptInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, priv.ObjectHandle)
 	if err != nil {
 		return nil, err
 	}
-	out, err := s.ctx.Decrypt(s.handle, ciphertext)
+	out, err := s.Ctx.Decrypt(s.Handle, ciphertext)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +35,11 @@ func (priv PrivateKey) Sign(mechanism pkcs11.Mechanism, message []byte) ([]byte,
 	s := priv.session
 	s.Lock()
 	defer s.Unlock()
-	err := s.ctx.SignInit(s.handle, []*pkcs11.Mechanism{&mechanism}, priv.objectHandle)
+	err := s.Ctx.SignInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, priv.ObjectHandle)
 	if err != nil {
 		return nil, err
 	}
-	out, err := s.ctx.Sign(s.handle, message)
+	out, err := s.Ctx.Sign(s.Handle, message)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +51,11 @@ func (pub PublicKey) Verify(mechanism pkcs11.Mechanism, message, signature []byt
 	s := pub.session
 	s.Lock()
 	defer s.Unlock()
-	err := s.ctx.VerifyInit(s.handle, []*pkcs11.Mechanism{&mechanism}, pub.objectHandle)
+	err := s.Ctx.VerifyInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, pub.ObjectHandle)
 	if err != nil {
 		return err
 	}
-	err = s.ctx.Verify(s.handle, message, signature)
+	err = s.Ctx.Verify(s.Handle, message, signature)
 	if err != nil {
 		return err
 	}
@@ -67,11 +67,11 @@ func (pub PublicKey) Encrypt(mechanism pkcs11.Mechanism, plaintext []byte) ([]by
 	s := pub.session
 	s.Lock()
 	defer s.Unlock()
-	err := s.ctx.EncryptInit(s.handle, []*pkcs11.Mechanism{&mechanism}, pub.objectHandle)
+	err := s.Ctx.EncryptInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, pub.ObjectHandle)
 	if err != nil {
 		return nil, err
 	}
-	out, err := s.ctx.Encrypt(s.handle, plaintext)
+	out, err := s.Ctx.Encrypt(s.Handle, plaintext)
 	if err != nil {
 		return nil, err
 	}

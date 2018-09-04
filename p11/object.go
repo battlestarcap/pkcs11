@@ -3,7 +3,7 @@ package p11
 import (
 	"errors"
 
-	"github.com/miekg/pkcs11"
+	"github.com/battlestarcap/pkcs11"
 )
 
 // Object represents a handle to a PKCS#11 object. It is attached to the
@@ -12,7 +12,7 @@ import (
 // the application.
 type Object struct {
 	session      *sessionImpl
-	objectHandle pkcs11.ObjectHandle
+	ObjectHandle pkcs11.ObjectHandle
 }
 
 // Label returns the label of an object.
@@ -38,7 +38,7 @@ func (o Object) Attribute(attributeType uint) ([]byte, error) {
 	o.session.Lock()
 	defer o.session.Unlock()
 
-	attrs, err := o.session.ctx.GetAttributeValue(o.session.handle, o.objectHandle,
+	attrs, err := o.session.Ctx.GetAttributeValue(o.session.Handle, o.ObjectHandle,
 		[]*pkcs11.Attribute{pkcs11.NewAttribute(attributeType, nil)})
 	// The PKCS#11 spec states that C_GetAttributeValue may return
 	// CKR_ATTRIBUTE_TYPE_INVALID if an object simply does not posses a given
@@ -63,7 +63,7 @@ func (o Object) Set(attributeType uint, value []byte) error {
 	o.session.Lock()
 	defer o.session.Unlock()
 
-	err := o.session.ctx.SetAttributeValue(o.session.handle, o.objectHandle,
+	err := o.session.Ctx.SetAttributeValue(o.session.Handle, o.ObjectHandle,
 		[]*pkcs11.Attribute{pkcs11.NewAttribute(attributeType, value)})
 	if err != nil {
 		return err
@@ -77,13 +77,13 @@ func (o Object) Copy(template []*pkcs11.Attribute) (Object, error) {
 	s := o.session
 	s.Lock()
 	defer s.Unlock()
-	newHandle, err := s.ctx.CopyObject(s.handle, o.objectHandle, template)
+	newHandle, err := s.Ctx.CopyObject(s.Handle, o.ObjectHandle, template)
 	if err != nil {
 		return Object{}, err
 	}
 	return Object{
 		session:      s,
-		objectHandle: newHandle,
+		ObjectHandle: newHandle,
 	}, nil
 }
 
@@ -92,5 +92,5 @@ func (o Object) Destroy() error {
 	s := o.session
 	s.Lock()
 	defer s.Unlock()
-	return s.ctx.DestroyObject(s.handle, o.objectHandle)
+	return s.Ctx.DestroyObject(s.Handle, o.ObjectHandle)
 }
