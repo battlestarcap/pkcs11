@@ -34,7 +34,7 @@ func (s Slot) openSession(flags uint) (Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &sessionImpl{
+	return &SessionImpl{
 		Ctx:    s.ctx,
 		Handle: handle,
 	}, nil

@@ -16,7 +16,7 @@ type PrivateKey Object
 
 // Decrypt decrypts the input with a given mechanism.
 func (priv PrivateKey) Decrypt(mechanism pkcs11.Mechanism, ciphertext []byte) ([]byte, error) {
-	s := priv.session
+	s := priv.Session
 	s.Lock()
 	defer s.Unlock()
 	err := s.Ctx.DecryptInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, priv.ObjectHandle)
@@ -32,7 +32,7 @@ func (priv PrivateKey) Decrypt(mechanism pkcs11.Mechanism, ciphertext []byte) ([
 
 // Sign signs the input with a given mechanism.
 func (priv PrivateKey) Sign(mechanism pkcs11.Mechanism, message []byte) ([]byte, error) {
-	s := priv.session
+	s := priv.Session
 	s.Lock()
 	defer s.Unlock()
 	err := s.Ctx.SignInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, priv.ObjectHandle)
@@ -48,7 +48,7 @@ func (priv PrivateKey) Sign(mechanism pkcs11.Mechanism, message []byte) ([]byte,
 
 // Verify verifies a signature over a message with a given mechanism.
 func (pub PublicKey) Verify(mechanism pkcs11.Mechanism, message, signature []byte) error {
-	s := pub.session
+	s := pub.Session
 	s.Lock()
 	defer s.Unlock()
 	err := s.Ctx.VerifyInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, pub.ObjectHandle)
@@ -64,7 +64,7 @@ func (pub PublicKey) Verify(mechanism pkcs11.Mechanism, message, signature []byt
 
 // Encrypt encrypts a plaintext with a given mechanism.
 func (pub PublicKey) Encrypt(mechanism pkcs11.Mechanism, plaintext []byte) ([]byte, error) {
-	s := pub.session
+	s := pub.Session
 	s.Lock()
 	defer s.Unlock()
 	err := s.Ctx.EncryptInit(s.Handle, []*pkcs11.Mechanism{&mechanism}, pub.ObjectHandle)

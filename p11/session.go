@@ -48,13 +48,13 @@ type Session interface {
 	SetPIN(old, new string) error
 }
 
-type sessionImpl struct {
+type SessionImpl struct {
 	sync.Mutex
 	Ctx    *pkcs11.Ctx
 	Handle pkcs11.SessionHandle
 }
 
-func (s *sessionImpl) FindObject(template []*pkcs11.Attribute) (Object, error) {
+func (s *SessionImpl) FindObject(template []*pkcs11.Attribute) (Object, error) {
 	objects, err := s.FindObjects(template)
 	if err != nil {
 		return Object{}, nil
@@ -65,7 +65,7 @@ func (s *sessionImpl) FindObject(template []*pkcs11.Attribute) (Object, error) {
 	return objects[0], nil
 }
 
-func (s *sessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error) {
+func (s *SessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error) {
 	s.Lock()
 	defer s.Unlock()
 	if err := s.Ctx.FindObjectsInit(s.Handle, template); err != nil {
@@ -85,7 +85,7 @@ func (s *sessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error
 		results = append(results, make([]Object, len(ObjectHandles))...)
 		for j, ObjectHandle := range ObjectHandles {
 			results[i+j] = Object{
-				session:      s,
+				Session:      s,
 				ObjectHandle: ObjectHandle,
 			}
 		}
@@ -98,39 +98,39 @@ func (s *sessionImpl) FindObjects(template []*pkcs11.Attribute) ([]Object, error
 	return results, nil
 }
 
-func (s *sessionImpl) Close() error {
+func (s *SessionImpl) Close() error {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.CloseSession(s.Handle)
 }
 
-func (s *sessionImpl) Login(pin string) error {
+func (s *SessionImpl) Login(pin string) error {
 	return s.login(pkcs11.CKU_USER, pin)
 }
 
-func (s *sessionImpl) LoginSecurityOfficer(pin string) error {
+func (s *SessionImpl) LoginSecurityOfficer(pin string) error {
 	return s.login(pkcs11.CKU_SO, pin)
 }
 
-func (s *sessionImpl) login(userType uint, pin string) error {
+func (s *SessionImpl) login(userType uint, pin string) error {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.Login(s.Handle, userType, pin)
 }
 
-func (s *sessionImpl) Logout() error {
+func (s *SessionImpl) Logout() error {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.Logout(s.Handle)
 }
 
-func (s *sessionImpl) GenerateRandom(length int) ([]byte, error) {
+func (s *SessionImpl) GenerateRandom(length int) ([]byte, error) {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.GenerateRandom(s.Handle, length)
 }
 
-func (s *sessionImpl) CreateObject(template []*pkcs11.Attribute) (Object, error) {
+func (s *SessionImpl) CreateObject(template []*pkcs11.Attribute) (Object, error) {
 	s.Lock()
 	defer s.Unlock()
 	oh, err := s.Ctx.CreateObject(s.Handle, template)
@@ -138,18 +138,18 @@ func (s *sessionImpl) CreateObject(template []*pkcs11.Attribute) (Object, error)
 		return Object{}, err
 	}
 	return Object{
-		session:      s,
+		Session:      s,
 		ObjectHandle: oh,
 	}, nil
 }
 
-func (s *sessionImpl) InitPIN(pin string) error {
+func (s *SessionImpl) InitPIN(pin string) error {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.InitPIN(s.Handle, pin)
 }
 
-func (s *sessionImpl) SetPIN(old, new string) error {
+func (s *SessionImpl) SetPIN(old, new string) error {
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.SetPIN(s.Handle, old, new)
@@ -170,7 +170,7 @@ type GenerateKeyPairRequest struct {
 	PrivateKeyAttributes []*pkcs11.Attribute
 }
 
-func (s *sessionImpl) GenerateKeyPair(request GenerateKeyPairRequest) (*KeyPair, error) {
+func (s *SessionImpl) GenerateKeyPair(request GenerateKeyPairRequest) (*KeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
 	pubHandle, privHandle, err := s.Ctx.GenerateKeyPair(s.Handle,
@@ -182,11 +182,11 @@ func (s *sessionImpl) GenerateKeyPair(request GenerateKeyPairRequest) (*KeyPair,
 	}
 	return &KeyPair{
 		Public: PublicKey(Object{
-			session:      s,
+			Session:      s,
 			ObjectHandle: pubHandle,
 		}),
 		Private: PrivateKey(Object{
-			session:      s,
+			Session:      s,
 			ObjectHandle: privHandle,
 		}),
 	}, nil

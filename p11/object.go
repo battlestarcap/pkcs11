@@ -11,7 +11,7 @@ import (
 // Object will fail. Operations may also depend on the logged-in state of
 // the application.
 type Object struct {
-	session      *sessionImpl
+	Session      *SessionImpl
 	ObjectHandle pkcs11.ObjectHandle
 }
 
@@ -35,10 +35,10 @@ func (o Object) Value() ([]byte, error) {
 // of bytes. For attributes not present (i.e. CKR_ATTRIBUTE_TYPE_INVALID),
 // Attribute returns a nil slice and nil error.
 func (o Object) Attribute(attributeType uint) ([]byte, error) {
-	o.session.Lock()
-	defer o.session.Unlock()
+	o.Session.Lock()
+	defer o.Session.Unlock()
 
-	attrs, err := o.session.Ctx.GetAttributeValue(o.session.Handle, o.ObjectHandle,
+	attrs, err := o.Session.Ctx.GetAttributeValue(o.Session.Handle, o.ObjectHandle,
 		[]*pkcs11.Attribute{pkcs11.NewAttribute(attributeType, nil)})
 	// The PKCS#11 spec states that C_GetAttributeValue may return
 	// CKR_ATTRIBUTE_TYPE_INVALID if an object simply does not posses a given
@@ -60,10 +60,10 @@ func (o Object) Attribute(attributeType uint) ([]byte, error) {
 
 // Set sets exactly one attribute on this object.
 func (o Object) Set(attributeType uint, value []byte) error {
-	o.session.Lock()
-	defer o.session.Unlock()
+	o.Session.Lock()
+	defer o.Session.Unlock()
 
-	err := o.session.Ctx.SetAttributeValue(o.session.Handle, o.ObjectHandle,
+	err := o.Session.Ctx.SetAttributeValue(o.Session.Handle, o.ObjectHandle,
 		[]*pkcs11.Attribute{pkcs11.NewAttribute(attributeType, value)})
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (o Object) Set(attributeType uint, value []byte) error {
 // Copy makes a copy of this object, with the attributes in template applied on
 // top of it, if possible.
 func (o Object) Copy(template []*pkcs11.Attribute) (Object, error) {
-	s := o.session
+	s := o.Session
 	s.Lock()
 	defer s.Unlock()
 	newHandle, err := s.Ctx.CopyObject(s.Handle, o.ObjectHandle, template)
@@ -82,14 +82,14 @@ func (o Object) Copy(template []*pkcs11.Attribute) (Object, error) {
 		return Object{}, err
 	}
 	return Object{
-		session:      s,
+		Session:      s,
 		ObjectHandle: newHandle,
 	}, nil
 }
 
 // Destroy destroys this object.
 func (o Object) Destroy() error {
-	s := o.session
+	s := o.Session
 	s.Lock()
 	defer s.Unlock()
 	return s.Ctx.DestroyObject(s.Handle, o.ObjectHandle)

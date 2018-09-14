@@ -96,7 +96,7 @@ func GetDeriveParamBytes(public []byte) ([]byte, arena) {
 	params := C.CK_ECDH1_DERIVE_PARAMS{
 		kdf:             C.CK_ULONG(C.CKD_NULL),
 		ulSharedDataLen: 0,
-		pSharedData:     nil,
+		pSharedData:     C.CK_BYTE_PTR(nil),
 		ulPublicDataLen: C.CK_ULONG(len(public)),
 		pPublicData:     C.CK_BYTE_PTR(publicBuffer)}
 	return C.GoBytes(unsafe.Pointer(&params), C.int(unsafe.Sizeof(params))), arena
