@@ -101,3 +101,14 @@ func GetDeriveParamBytes(public []byte) ([]byte, arena) {
 		pPublicData:     C.CK_BYTE_PTR(publicBuffer)}
 	return C.GoBytes(unsafe.Pointer(&params), C.int(unsafe.Sizeof(params))), arena
 }
+
+// GetAESKeyWrapParamBytes -
+func GetAESKeyWrapParamBytes() []byte {
+	params := C.CK_ECDH_AES_KEY_WRAP_PARAMS{
+		ulAESKeyBits:    256,
+		kdf:             C.CK_ULONG(C.CKD_NULL),
+		ulSharedDataLen: 0,
+		pSharedData:     C.CK_BYTE_PTR(nil)}
+
+	return C.GoBytes(unsafe.Pointer(&params), C.int(unsafe.Sizeof(params)))
+}
